@@ -1,0 +1,7 @@
+Outline Level,ID,Name,Start,Finish,Duration,% Complete,Predecessors,Resource Names,Color,Notes
+1,1,"Project Phase",2025-11-10,2025-12-31,38 day,0,"","",,"<p><br></p>"
+2,2,"Phase 1: Project Planning",2025-11-10,2025-11-12,3 day,0,"","Team Member 1",181,"<p><br></p>"
+2,3,"Phase 2: System Analysis",2025-11-13,2025-11-21,7 day,0,"2FS","Team Member 2",211,"<p><br></p>"
+2,4,"Phase 3: System Design",2025-11-24,2025-12-02,7 day,0,"3FS","Team Member 3",241,"<p><br></p>"
+2,5,"Phase 4: System Development / Implementation",2025-12-03,2025-12-22,14 day,0,"4FS","Team Member 3",271,"<p><br></p>"
+2,6,"Phase 5: System Testing & User Manual",2025-12-23,2025-12-31,7 day,0,"5FS","Team Member 3",301,"<p><br></p>"
