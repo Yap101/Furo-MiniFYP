@@ -1,0 +1,104 @@
+flowchart LR
+  %% Updated architecture with explicit Server/API layer, React Query, and models
+  %% Left-to-right layout for clarity
+
+  subgraph UserLayer[User]
+    User[(User)]
+    Wallet["Wallet\n(wallet auth via Wagmi)"]
+    User --> Wallet
+  end
+
+  subgraph AppShell[App Shell]
+    RootLayout["RootLayout\n(app/layout.tsx)"]
+    Providers["Providers\n(Wagmi + RainbowKit)"]
+    QueryClient["React Query\n(QueryClient)"]
+    Theme["Theme Tokens\n(globals.css)"]
+    RootLayout --> Providers
+    Providers --> QueryClient
+    RootLayout --> Theme
+  end
+
+  subgraph Pages[Pages]
+    Landing[Landing]
+    Marketplace[Marketplace]
+    API[API Details]
+    ListAPI[List API Form]
+    Dashboard[Dashboard]
+  end
+
+  subgraph ClientState[Client Data]
+    MockAPIs["mockAPIs\n(currently used in UI)"]
+    Favorites[(Favorites Set)]
+  end
+
+  %% Server/API layer (recommended) sits between pages and DB
+  subgraph Server[Server / API]
+    NextAPI["Next.js API Routes / Server Functions"]
+  AuthSvc[(Wallet Auth / Signature Verification)]
+  PaymentSvc[(x402 Payment Verification)]
+    NextAPI --> AuthSvc
+    NextAPI --> PaymentSvc
+  end
+
+  subgraph Persistence[Persistence Layer]
+    Schema["schema.prisma\n(models)\n(define tables below)"]
+    ApiModel[(Api)]
+    ProviderModel[(Provider)]
+    FavoriteModel[(Favorite)]
+    PaymentModel[(VerifiedPayment)]
+    PrismaClient["Prisma Client\n(@prisma/client)"]
+    Env[".env.local\n(DATABASE_URL)"]
+    DB[(Postgres / DB)]
+    Schema --> ApiModel
+    Schema --> ProviderModel
+    Schema --> FavoriteModel
+    Schema --> PaymentModel
+    Schema --> PrismaClient
+    Env --> PrismaClient
+    PrismaClient --> DB
+  end
+
+  subgraph Tooling[CLI / Scripts]
+    Generate["prisma generate"]
+    Migrate["prisma migrate dev"]
+    Studio["prisma studio"]
+    Generate --> PrismaClient
+    Migrate --> DB
+    Studio --> PrismaClient
+  end
+
+  subgraph Future[External]
+    ExternalAPI[(External Endpoint / Payment Relayer)]
+  end
+
+  %% High level flows
+  User --> RootLayout
+  Wallet --> Providers
+  Providers --> Pages
+  QueryClient --> Pages
+  RootLayout --> Pages
+
+  %% Client data and mock flow (current)
+  MockAPIs --> Marketplace
+  MockAPIs --> API
+  MockAPIs --> Dashboard
+  Marketplace --> Favorites
+  ListAPI --> MockAPIs
+  Dashboard --> MockAPIs
+
+  %% Recommended runtime flow (Phase 2)
+  Pages -. calls .-> NextAPI
+  NextAPI -. queries .-> PrismaClient
+  NextAPI --> PaymentSvc
+  PaymentSvc --> ExternalAPI
+
+  %% Auth flow (wallet -> server verifies signatures; providers stored by wallet address)
+  Wallet --> AuthSvc
+  AuthSvc --> NextAPI
+
+  %% Payment path (UI triggers, Server verifies/off-chain relayer)
+  API --> NextAPI --> PaymentSvc --> ExternalAPI --> PaymentSvc --> NextAPI --> API
+
+  %% Styling future / planned items
+  classDef future fill:#333,stroke:#777,stroke-dasharray:5 5,color:#fff
+  class PaymentSvc,ExternalAPI,PrismaClient,DB,Schema,Generate,Migrate,Studio future
